@@ -65,10 +65,9 @@
             margin-bottom: 20px;
         }
 
-        /* 🟢 這裡調高了框框高度，並補上內襯邊距防止貼邊 */
         .display-box {
-            width: 320px;
-            height: 160px;
+            width: 340px;
+            height: 180px; /* 🟢 再次微調高度以容納更大的第一行字體 */
             background: #ecf0f1;
             border: 4px solid #34495e;
             border-radius: 15px;
@@ -78,7 +77,7 @@
             box-shadow: inset 0 4px 8px rgba(0,0,0,0.2);
             position: relative;
             overflow: hidden;
-            padding: 10px;
+            padding: 15px;
         }
 
         .display-content {
@@ -91,15 +90,29 @@
             width: 100%;
         }
 
-        /* 🟢 優化文字字體與行高，讓多行字更易讀 */
         .display-text {
-            font-size: 22px;
-            font-weight: bold;
             color: #2c3e50;
             max-width: 100%;
-            line-height: 1.5;
+            line-height: 1.45;
             white-space: pre-line;
             word-break: break-all;
+        }
+
+        /* 🟢 第一行的獨立大字體樣式 */
+        .first-line {
+            font-size: 26px;
+            font-weight: 900;
+            color: #1a252f;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        /* 🟢 第二行以後的備註樣式 */
+        .sub-lines {
+            font-size: 20px;
+            font-weight: bold;
+            color: #555;
+            display: block;
         }
 
         .flashing {
@@ -177,42 +190,6 @@
             transform: translateY(-50%) rotate(15deg);
         }
 
-        .result {
-            font-size: 20px;
-            font-weight: bold;
-            color: #2c3e50;
-            min-height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 10px;
-        }
-
-        .result.show {
-            animation: bounceIn 0.6s ease;
-        }
-
-        .result.jackpot {
-            background: linear-gradient(45deg, #f39c12, #e67e22);
-            color: white;
-            animation: jackpotFlash 1s ease-in-out;
-        }
-
-        @keyframes bounceIn {
-            0% { transform: scale(0.3); opacity: 0; }
-            50% { transform: scale(1.05); }
-            70% { transform: scale(0.9); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        @keyframes jackpotFlash {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
         .note {
             font-size: 12px;
             color: #666;
@@ -220,7 +197,6 @@
             font-style: italic;
         }
 
-        /* 🟢 手機板防呆微調 */
         @media (max-width: 480px) {
             .container {
                 padding: 20px;
@@ -232,12 +208,16 @@
             }
             
             .display-box {
-                width: 260px;
-                height: 140px;
+                width: 280px;
+                height: 160px;
+            }
+
+            .first-line {
+                font-size: 22px; /* 手機板第一行稍微縮小避免爆版 */
             }
             
-            .display-text {
-                font-size: 16px;
+            .sub-lines {
+                font-size: 14px;
             }
             
             .title {
@@ -260,7 +240,9 @@
     <div class="display-container">
      <div class="display-box">
       <div class="display-content" id="displayContent">
-       <div class="display-text">準備開始</div>
+       <div class="display-text">
+        <span class="first-line">準備開始！</span>
+       </div>
       </div>
      </div>
     </div><button class="spin-button" id="spinButton"> GO </button>
@@ -269,7 +251,7 @@
     沒開就重抽
    </div>
    <div class="note">
-    更新時間：2026.06.23 22:50
+    更新時間：2026.06.23 23:00
    </div>
   </main>
   <script>
@@ -335,10 +317,21 @@
             setTimeout(() => {
                 displayBox.classList.remove('flashing');
                 
-                const formattedOption = selectedOption.replace(/\s+/g, '\n');
-                displayContent.innerHTML = `
-                    <div class="display-text">${formattedOption}</div>
-                `;
+                // 🟢 將店名（第一個空格前的字）與後面備註切開
+                const parts = selectedOption.split(' ');
+                const firstLineText = parts[0];
+                const otherLinesText = parts.slice(1).join(' '); // 剩餘的內容
+                
+                // 組裝成有主次級大小的 HTML 結構
+                let htmlContent = `<div class="display-text">`;
+                htmlContent += `<span class="first-line">${firstLineText}</span>`;
+                if (otherLinesText) {
+                    // 如果有剩餘的備註，換行並用較小字體呈現
+                    htmlContent += `<span class="sub-lines">${otherLinesText.replace(/\s+/g, '\n')}</span>`;
+                }
+                htmlContent += `</div>`;
+                
+                displayContent.innerHTML = htmlContent;
                 
                 spinButton.disabled = false;
                 isSpinning = false;
