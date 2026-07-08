@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="zh-TW">
  <head><script src="/_sdk/telemetry_sdk.js"></script>
@@ -280,6 +281,10 @@
         let lastSelectedIndex = -1;
         let recentSelections = [];
 
+        // 🟢 請在此處填入你部署 Google Apps Script 後取得的 Web 應用程式網址
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycby2w9SFGQWM2tCUhI0g1DSz4KReoYBTrNljPk9JAuGlCLFMNUHoBai7UT_fsZ48q12h1g/exec"; 
+
+
         function spinSlots() {
             if (isSpinning) return;
             
@@ -335,8 +340,38 @@
                 
                 spinButton.disabled = false;
                 isSpinning = false;
+
+                // 🟢 抽獎完成，將結果傳送到 Google Sheets
+                sendDataToGAS(selectedOption);
+
             }, 1500);
         }
+
+        // 🟢 新增：傳送資料至 GAS 的函式
+        function sendDataToGAS(result) {
+            if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL === "YOUR_GAS_WEB_APP_URL") {
+                console.log("尚未設定 GAS Web App URL。");
+                return;
+            }
+
+            const data = {
+                result: result,
+                timestamp: new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })
+            };
+
+            // 使用 fetch 發送 POST 請求，模式設定為 no-cors 以避免跨網域錯誤的阻擋
+            fetch(GAS_WEB_APP_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            })
+            .then(() => console.log("資料已成功送出！"))
+            .catch(error => console.error("傳送失敗:", error));
+        }
+
 
         async function onConfigChange(config) {
             const titleElement = document.getElementById('title');
